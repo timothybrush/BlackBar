@@ -83,7 +83,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2026 Peter Steinberger</string>
     <key>SUFeedURL</key>
-    <string>https://raw.githubusercontent.com/openclaw/BlackBar/main/appcast.xml</string>
+    <string>https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml</string>
     <key>SUPublicEDKey</key>
     <string>oIgha2beQWnyCXgOIlB8+oaUzFNtWgkqq6jKXNNDhv4=</string>
     <key>SUEnableAutomaticChecks</key>

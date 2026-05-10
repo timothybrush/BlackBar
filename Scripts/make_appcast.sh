@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 ZIP=${1:?"Usage: $0 BlackBar-<version>.zip"}
-FEED_URL=${2:-"https://raw.githubusercontent.com/openclaw/BlackBar/main/appcast.xml"}
+FEED_URL=${2:-"https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml"}
 PRIVATE_KEY_FILE=${SPARKLE_PRIVATE_KEY_FILE:-}
 
 if [[ -z "$PRIVATE_KEY_FILE" ]]; then
@@ -44,7 +44,7 @@ cp "$ROOT/appcast.xml" "$WORK_DIR/appcast.xml"
 cp "$ZIP" "$WORK_DIR/$ZIP_NAME"
 cp "$NOTES_HTML" "$WORK_DIR/$ZIP_BASE.html"
 
-DOWNLOAD_URL_PREFIX=${SPARKLE_DOWNLOAD_URL_PREFIX:-"https://github.com/openclaw/BlackBar/releases/download/v${VERSION}/"}
+DOWNLOAD_URL_PREFIX=${SPARKLE_DOWNLOAD_URL_PREFIX:-"https://github.com/steipete/BlackBar/releases/download/v${VERSION}/"}
 
 pushd "$WORK_DIR" >/dev/null
 generate_appcast \

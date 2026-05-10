@@ -6,7 +6,7 @@ CUR_TAG=${2:?'pass current release tag, e.g. v0.1.1'}
 
 APP_NAME="BlackBar"
 PREV_VER=${PREV_TAG#v}
-ZIP_URL="https://github.com/openclaw/BlackBar/releases/download/${PREV_TAG}/${APP_NAME}-${PREV_VER}.zip"
+ZIP_URL="https://github.com/steipete/BlackBar/releases/download/${PREV_TAG}/${APP_NAME}-${PREV_VER}.zip"
 TMP_DIR=$(mktemp -d /tmp/blackbar-live.XXXX)
 trap 'rm -rf "$TMP_DIR"' EXIT
 

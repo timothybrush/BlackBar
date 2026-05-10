@@ -38,7 +38,7 @@ gh release create "$TAG" "${APP_NAME}-${MARKETING_VERSION}.zip" "${APP_NAME}-${M
 SPARKLE_PRIVATE_KEY_FILE="$KEY_FILE" \
   "$ROOT/Scripts/make_appcast.sh" \
   "${APP_NAME}-${MARKETING_VERSION}.zip" \
-  "https://raw.githubusercontent.com/openclaw/BlackBar/main/appcast.xml"
+  "https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml"
 
 verify_appcast_entry "$APPCAST" "$MARKETING_VERSION" "$KEY_FILE"
 

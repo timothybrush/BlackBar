@@ -1,7 +1,7 @@
 # BlackBar
 
-[![CI](https://github.com/openclaw/BlackBar/actions/workflows/ci.yml/badge.svg)](https://github.com/openclaw/BlackBar/actions/workflows/ci.yml)
-[![Pages](https://github.com/openclaw/BlackBar/actions/workflows/pages.yml/badge.svg)](https://black.bar)
+[![CI](https://github.com/steipete/BlackBar/actions/workflows/ci.yml/badge.svg)](https://github.com/steipete/BlackBar/actions/workflows/ci.yml)
+[![Pages](https://github.com/steipete/BlackBar/actions/workflows/pages.yml/badge.svg)](https://black.bar)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0b0b0b?style=flat-square&labelColor=E8F12C)](LICENSE)
 [![macOS 14+](https://img.shields.io/badge/macOS-14+-0b0b0b?style=flat-square&labelColor=E8F12C)](#install)
 [![Site: black.bar](https://img.shields.io/badge/site-black.bar-0b0b0b?style=flat-square&labelColor=E8F12C)](https://black.bar)
@@ -41,13 +41,13 @@ electron. No telemetry. No servers in between.
 Grab the latest signed, notarized build:
 
 > Download `BlackBar-<version>.zip` from
-> [Releases](https://github.com/openclaw/BlackBar/releases/latest), unzip, and
+> [Releases](https://github.com/steipete/BlackBar/releases/latest), unzip, and
 > drag `BlackBar.app` to `/Applications`.
 
 Or build from source:
 
 ```sh
-git clone https://github.com/openclaw/BlackBar.git
+git clone https://github.com/steipete/BlackBar.git
 cd BlackBar && make app
 open build/BlackBar.app
 ```
