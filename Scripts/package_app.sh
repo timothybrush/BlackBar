@@ -85,7 +85,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
     <key>SUFeedURL</key>
     <string>https://raw.githubusercontent.com/openclaw/BlackBar/main/appcast.xml</string>
     <key>SUPublicEDKey</key>
-    <string>AGCY8w5vHirVfGGDGc8Szc5iuOqupZSh9pMj/Qs67XI=</string>
+    <string>oIgha2beQWnyCXgOIlB8+oaUzFNtWgkqq6jKXNNDhv4=</string>
     <key>SUEnableAutomaticChecks</key>
     <true/>
     <key>SUEnableInstallerLauncherService</key>
