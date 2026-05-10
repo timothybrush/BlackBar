@@ -3,6 +3,17 @@
     <channel>
         <title>BlackBar</title>
         <item>
+            <title>0.1.2</title>
+            <pubDate>Sun, 10 May 2026 12:57:49 +0100</pubDate>
+            <link>https://raw.githubusercontent.com/openclaw/BlackBar/main/appcast.xml</link>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul><li>Restore native macOS status item tinting by using a template graph image and plain status button title, so menu bar text and graph adapt correctly across light, dark, and tinted backgrounds.</li></ul>
+]]></description>
+            <enclosure url="https://github.com/openclaw/BlackBar/releases/download/v0.1.2/BlackBar-0.1.2.zip" length="1636096" type="application/octet-stream" sparkle:edSignature="QS0R8jncTIe3+MuXyOVmPptSH0DNOCAHV87iM9f9rpmwGKUE4h+KGao2yXY/3oti+zQjwKWQBRv+PdwRy80xBg=="/>
+        </item>
+        <item>
             <title>0.1.1</title>
             <pubDate>Sun, 10 May 2026 12:35:28 +0100</pubDate>
             <link>https://raw.githubusercontent.com/openclaw/BlackBar/main/appcast.xml</link>
