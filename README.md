@@ -1,94 +1,145 @@
 # BlackBar
 
 [![CI](https://github.com/openclaw/BlackBar/actions/workflows/ci.yml/badge.svg)](https://github.com/openclaw/BlackBar/actions/workflows/ci.yml)
+[![Pages](https://github.com/openclaw/BlackBar/actions/workflows/pages.yml/badge.svg)](https://black.bar)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0b0b0b?style=flat-square&labelColor=E8F12C)](LICENSE)
+[![macOS 14+](https://img.shields.io/badge/macOS-14+-0b0b0b?style=flat-square&labelColor=E8F12C)](#install)
+[![Site: black.bar](https://img.shields.io/badge/site-black.bar-0b0b0b?style=flat-square&labelColor=E8F12C)](https://black.bar)
 
-Native macOS menu bar app for Blacksmith CI status and live vCPU usage.
+![BlackBar — your Blacksmith status, in your menu bar](docs/social-card.png)
 
-BlackBar sits in the menu bar, shows the current Blacksmith core count, and opens into an AppKit-native menu with status, live job totals, platform buckets, a tiny history graph, and links back to Blacksmith and GitHub Actions.
+> ⚠️  **Independent third-party tool — not affiliated with Blacksmith.** "Blacksmith"
+> and the Blacksmith logo are trademarks of their respective owners. BlackBar
+> is a personal project that talks to the Blacksmith status feed and dashboard
+> the same way your browser does.
 
-## Features
+A tiny native macOS menu bar app that watches your **Blacksmith CI** runners and
+the public **Blacksmith status page** — so you know *before the queue burns*
+whether to merge, re-run, or take a walk.
 
-- Live vCPU and job totals from Blacksmith's dashboard API.
-- Public Blacksmith status from `status.blacksmith.sh`.
-- Platform breakdown for `amd64`, `arm64`, and `macos`.
-- Compact menu bar graph with dynamic width for larger core counts.
-- Native menu, native Settings window, no SwiftUI popover shell.
-- GitHub login through Blacksmith's OAuth flow in a WebKit window.
-- Session cookie stored in Keychain and cached in memory to avoid repeated prompts.
-- Sparkle-based automatic updates for signed release builds.
+```
+  ●  4  ▍▎▏▎▌▏▌▍▎▏▎▌  ⌘
+```
+
+That's all it is. A green dot, a vCPU number, a tiny graph. No dock icon. No
+electron. No telemetry. No servers in between.
+
+## What it shows
+
+- **Public status** from `status.blacksmith.sh/summary.json` — green when the
+  forge is hot, orange when a region's wobbling.
+- **Active vCPU** totalled across your live runs (parses runner labels like
+  `blacksmith-4vcpu-ubuntu-2404`).
+- **Active job count** with the per-job names visible in the dropdown.
+- **Platform breakdown** for `amd64`, `arm64`, and `macos` when per-job detail
+  isn't available.
+- **18-bar history graph** of recent activity, crammed into 54 pixels next to
+  the count.
 
 ## Install
 
-Download the latest `BlackBar-<version>.zip` from GitHub Releases, unzip it, and move `BlackBar.app` to `/Applications`.
+Grab the latest signed, notarized build:
 
-BlackBar is a menu bar app. It does not show a Dock icon.
+> Download `BlackBar-<version>.zip` from
+> [Releases](https://github.com/openclaw/BlackBar/releases/latest), unzip, and
+> drag `BlackBar.app` to `/Applications`.
+
+Or build from source:
+
+```sh
+git clone https://github.com/openclaw/BlackBar.git
+cd BlackBar && make app
+open build/BlackBar.app
+```
+
+BlackBar is a menu bar app — it does not show a Dock icon.
 
 ## Login
 
 1. Launch BlackBar.
-2. Open the menu bar item.
-3. Choose `Login with GitHub`.
-4. Complete the Blacksmith login.
+2. Click the menu bar item.
+3. Choose **Login with GitHub**.
+4. Complete the regular Blacksmith login in the WebKit window that appears.
 
-The login stores the Blacksmith session cookie in the macOS Keychain. Polling uses the cached in-memory cookie after launch, so normal refreshes do not keep touching Keychain.
+The Blacksmith session cookie is stored in the macOS Keychain. After launch
+the cookie is cached in memory so polling doesn't keep re-prompting Keychain.
+Sign out wipes it.
 
 ## Settings
 
 Defaults:
 
-- organization: `openclaw`
-- repository filter: empty, meaning all visible org usage
-- refresh interval: `60s`
+| Setting | Default |
+| --- | --- |
+| Organization | `openclaw` |
+| Repository filter | _(empty — all visible org usage)_ |
+| Refresh interval | `60s` |
 
-Use `Settings...` from the menu to change the org, optional repository filter, or polling interval.
+Use **Settings…** from the menu to change the org, an optional repo filter, or
+the polling interval.
 
-## Development
+## How it works
 
-Requirements:
+Two endpoints, one Keychain entry, zero proxies.
 
-- macOS 14 or newer
-- Xcode / Swift toolchain
-
-Build:
-
-```sh
-swift build -c release
+```
+                    ┌──────────────────────────┐
+       (no auth) ──▶│  status.blacksmith.sh    │── public status feed
+                    └──────────────────────────┘
+                                 ▲
+                                 │
+   ┌───────────────┐             │             ┌──────────────────────────┐
+   │  BlackBar.app │─────────────┼────────────▶│  app.blacksmith.sh       │
+   │   (menu bar)  │   Keychain  │   cookie    │  (your dashboard)        │
+   └───────────────┘             │             └──────────────────────────┘
+                                 ▼
+                          0 third-party SDKs
+                          0 telemetry endpoints
+                          0 background sync to anywhere else
 ```
 
-Package an app bundle:
+## Develop
+
+Requirements: macOS 14+, Swift 6 toolchain.
 
 ```sh
-make app
+make build         # swift build -c release
+make app           # build + assemble BlackBar.app bundle
+make run           # build + open BlackBar.app
+make ci            # local CI-equivalent check
 ```
 
-Run locally:
+Source layout:
 
-```sh
-make run
-```
-
-CI-equivalent local check:
-
-```sh
-make ci
-```
+- `Sources/BlackBar/` — the AppKit app (status item, menu controller, models).
+- `Sources/BlackBar/Blacksmith*Client.swift` — the two HTTP clients.
+- `Resources/Info.plist` + `Assets/` — bundle metadata and icon.
+- `docs/` — the site at [black.bar](https://black.bar).
 
 ## Release
 
-BlackBar uses the same Sparkle release shape as RepoBar:
+BlackBar uses the same Sparkle release shape as the rest of the openclaw
+toolchain.
 
-- `version.env` owns `MARKETING_VERSION` and `BUILD_NUMBER`.
-- `CHANGELOG.md` owns release notes.
-- `Scripts/package_app.sh` builds the `.app`, embeds `Sparkle.framework`, and writes release metadata.
-- `Scripts/codesign_app.sh` signs the app, nested Sparkle framework, Sparkle updater, XPC services, and the main bundle.
-- `Scripts/sign-and-notarize.sh` builds, signs, notarizes, staples, and zips the release app.
-- `Scripts/release.sh` tags, creates the GitHub release, uploads app and dSYM zips, updates `appcast.xml`, and verifies release assets.
-- `Scripts/verify_appcast.sh` verifies Sparkle enclosure length and ed25519 signature.
-- `Scripts/test_live_update.sh` smoke-tests an update from a previous release.
+| File | Owns |
+| --- | --- |
+| `version.env` | `MARKETING_VERSION` and `BUILD_NUMBER` |
+| `CHANGELOG.md` | release notes |
+| `appcast.xml` | Sparkle feed (signed) |
+| `Resources/Info.plist` | Sparkle public ed25519 key |
 
-The app uses Sparkle's public ed25519 key from `Resources/Info.plist`; the matching private key must be passed through `SPARKLE_PRIVATE_KEY_FILE` during release.
+Pipeline scripts under `Scripts/`:
 
-Required release environment:
+- `package_app.sh` — builds the `.app`, embeds Sparkle, writes release metadata.
+- `codesign_app.sh` — signs the bundle, nested Sparkle framework, updater, and
+  XPC services.
+- `sign-and-notarize.sh` — builds, signs, notarizes, staples, zips.
+- `release.sh` — tags, publishes the GitHub release, uploads app + dSYM zips,
+  updates `appcast.xml`, verifies enclosure length and ed25519 signature.
+- `verify_appcast.sh` — appcast sanity check.
+- `test_live_update.sh` — smoke-tests an update from the previous release.
+
+Required release env:
 
 ```sh
 export APP_STORE_CONNECT_API_KEY_P8='...'
@@ -103,4 +154,30 @@ Cut a release:
 make release
 ```
 
-Before running the release script, replace the `Unreleased` date in `CHANGELOG.md` with the release date.
+Replace the `Unreleased` date in `CHANGELOG.md` with the release date before
+running.
+
+## Privacy
+
+BlackBar talks to two hosts only:
+
+1. `status.blacksmith.sh` — public status feed.
+2. `app.blacksmith.sh` — your Blacksmith dashboard, with your Blacksmith
+   session cookie.
+
+That's the whole network surface. No analytics. No crash reporters. No
+"home base" callbacks. The source is right here — read it.
+
+## Trademark notice
+
+"Blacksmith" is a trademark of its respective owner. BlackBar is an
+independent third-party tool that interoperates with Blacksmith's public
+status feed and signed-in dashboard. It is not affiliated with, sponsored by,
+or endorsed by Blacksmith.
+
+If you're the Blacksmith team and you'd rather we change the name, drop a
+note at [steipete@gmail.com](mailto:steipete@gmail.com) or open an issue.
+
+## License
+
+[MIT](LICENSE) © Peter Steinberger.
