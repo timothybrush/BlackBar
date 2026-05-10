@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BlackBar — your Blacksmith status, in your menu bar</title>
+<meta name="description" content="BlackBar is an independent macOS menu bar app for Blacksmith CI status and active vCPU. Not affiliated with Blacksmith.">
+<meta name="theme-color" content="#0b0b0b">
+<meta property="og:title" content="BlackBar — Blacksmith status in your menu bar">
+<meta property="og:description" content="An independent macOS menu bar app for live Blacksmith CI status and active vCPU. Not affiliated with Blacksmith.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://black.bar">
+<meta property="og:image" content="https://black.bar/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --lime:#E8F12C;
+  --lime-soft:#f3f88a;
+  --ink:#0b0b0b;
+  --ink-soft:#1a1a1a;
+  --ink-line:rgba(0,0,0,.18);
+  --paper:#fafafa;
+  --muted:rgba(0,0,0,.62);
+  --code-bg:#0b0b0b;
+  --code-fg:#E8F12C;
+  --highlight:rgba(0,0,0,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Inter",ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+  background:var(--lime);
+  color:var(--ink);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  font-feature-settings:"cv02","cv03","cv04","cv11";
+  overflow-x:hidden;
+}
+::selection{background:var(--ink);color:var(--lime)}
+a{color:var(--ink);text-decoration:underline;text-underline-offset:.18em;text-decoration-thickness:1.5px}
+a:hover{text-decoration-thickness:2.5px}
+
+/* ------ Real menu bar screenshot ------ */
+.macbar-real{
+  display:block;
+  width:100%;
+  height:auto;
+  image-rendering:auto;
+  position:relative;
+  z-index:5;
+  border-bottom:1px solid rgba(0,0,0,.18);
+  background:var(--lime); /* fallback while loading */
+}
+.macbar-caption{
+  margin:6px clamp(20px,4vw,56px) 0;
+  font:500 .72rem/1.3 "JetBrains Mono",ui-monospace,monospace;
+  letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ------ Top nav ------ */
+.nav{
+  display:flex;align-items:center;gap:30px;
+  padding:24px clamp(20px,4vw,56px);
+  font-weight:600;font-size:.86rem;letter-spacing:.04em;text-transform:uppercase;
+}
+.nav .logo{
+  display:inline-flex;align-items:center;gap:10px;
+  text-decoration:none;color:var(--ink);
+}
+.nav .logo .swatch{
+  width:18px;height:18px;background:var(--ink);border-radius:2px;
+}
+.nav .logo b{font:700 14px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em}
+.nav a{color:var(--ink);text-decoration:none}
+.nav a:hover{text-decoration:underline;text-underline-offset:.25em}
+.nav .right{margin-left:auto;display:flex;gap:24px;align-items:center}
+@media(max-width:680px){
+  .nav{gap:18px;padding:18px 18px}
+  .nav .right{gap:14px}
+  .nav .links{display:none}
+}
+
+/* ------ Hero ------ */
+.hero{
+  padding:8px clamp(16px,4vw,56px) 0;
+}
+.brand-mark-row{display:flex;align-items:center;gap:18px;margin-bottom:10px;color:var(--muted);font:600 .78rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+.brand-mark-row .pill{
+  border:1.5px solid var(--ink);border-radius:999px;padding:5px 11px;color:var(--ink);
+  background:transparent;
+}
+.bigword{
+  font-family:"Silkscreen",ui-monospace,monospace;
+  font-weight:700;
+  font-size:clamp(72px, 22vw, 320px);
+  line-height:.78;
+  letter-spacing:-.01em;
+  color:var(--ink);
+  margin:6px 0 0;
+  word-break:break-all;
+  /* subtle pixel feel */
+  text-rendering:geometricPrecision;
+}
+/* the L is rendered as a literal black "menu bar" knockout when wide */
+.bigword .bar{display:inline-block;position:relative}
+.bigword .bar::after{
+  content:"";position:absolute;left:.06em;right:.06em;top:.10em;height:.18em;background:var(--ink);
+  display:none;
+}
+.subhero{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:48px;
+  margin-top:42px;align-items:end;
+}
+@media(max-width:900px){.subhero{grid-template-columns:1fr;gap:28px}}
+
+.disclaimer{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ink);color:var(--lime);
+  font:600 .78rem/1.1 "JetBrains Mono",ui-monospace,monospace;
+  letter-spacing:.04em;text-transform:uppercase;
+  padding:9px 12px;border-radius:6px;
+  margin-bottom:18px;
+}
+.disclaimer .marker{width:8px;height:8px;background:var(--lime);border-radius:50%}
+
+.tagline{font-size:clamp(1.4rem,2.4vw,2rem);line-height:1.18;font-weight:600;margin:0 0 12px;letter-spacing:-.01em}
+.lede{font-size:1.05rem;line-height:1.55;color:var(--ink);margin:0 0 20px;max-width:48ch}
+.lede em{background:var(--ink);color:var(--lime);font-style:normal;padding:1px 6px;border-radius:3px;font-weight:600}
+
+.diff{
+  display:block;
+  background:transparent;
+  border-radius:6px;
+  font:500 .98rem/1.65 "JetBrains Mono",ui-monospace,monospace;
+  margin:0 0 22px;
+  max-width:560px;
+}
+.diff .line{display:block;padding:2px 10px;border-radius:3px;white-space:pre}
+.diff .line.minus{background:rgba(0,0,0,.07)}
+.diff .line.plus{background:rgba(0,0,0,.07)}
+.diff .swatch{display:inline-block;width:.85em;height:.85em;background:var(--ink);transform:translateY(.12em);border-radius:1px}
+
+.cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:0 0 16px}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  font:700 .82rem/1 "JetBrains Mono",ui-monospace,monospace;
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:18px 28px;border-radius:999px;
+  text-decoration:none;border:2px solid var(--ink);
+  transition:transform .12s ease, background .15s, color .15s;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--ink);color:var(--lime)}
+.btn-primary:hover{background:#1f1f1f}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn-ghost:hover{background:rgba(0,0,0,.06)}
+.note{font-size:.86rem;color:var(--muted);margin:0 0 4px}
+
+/* ------ Right column: dropdown mock ------ */
+.dropdown{
+  position:relative;
+  margin-left:auto;
+  width:min(420px,100%);
+  background:#1c1c1d;
+  border-radius:14px;
+  padding:8px 0;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.06) inset,
+    0 30px 80px rgba(0,0,0,.18),
+    0 12px 24px rgba(0,0,0,.12);
+  color:#f4f4f5;
+  font:500 13px/1.4 -apple-system,"SF Pro Text",Helvetica,sans-serif;
+  border:1px solid rgba(255,255,255,.06);
+  transform:rotate(-.5deg);
+}
+.dropdown::before{
+  content:"";
+  position:absolute;top:-9px;right:60px;width:14px;height:14px;background:#1c1c1d;
+  transform:rotate(45deg);border-top:1px solid rgba(255,255,255,.08);border-left:1px solid rgba(255,255,255,.08);
+}
+.dropdown .row{
+  display:flex;align-items:center;gap:10px;padding:7px 16px;
+}
+.dropdown .row.section{
+  font:600 10px/1 "JetBrains Mono",ui-monospace,monospace;
+  text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.55);
+  padding-top:14px;padding-bottom:6px;
+}
+.dropdown .row.divider{height:1px;background:rgba(255,255,255,.08);padding:0;margin:6px 12px}
+.dropdown .row .lbl{flex:1;color:rgba(255,255,255,.95)}
+.dropdown .row .val{color:rgba(255,255,255,.7);font-variant-numeric:tabular-nums;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.dropdown .row.live .lbl{color:var(--lime)}
+.dropdown .row.live .badge{
+  display:inline-flex;align-items:center;gap:6px;background:rgba(232,241,44,.12);color:var(--lime);
+  border:1px solid rgba(232,241,44,.35);padding:2px 8px;border-radius:999px;
+  font:700 10px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;
+}
+.dropdown .row.live .badge i{width:6px;height:6px;background:var(--lime);border-radius:50%;display:inline-block}
+.dropdown .row.job .name{
+  font:500 12px/1.3 -apple-system,"SF Pro Text",sans-serif;color:#fff;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dropdown .row.job .repo{font:500 10.5px/1 "JetBrains Mono",ui-monospace,monospace;color:rgba(255,255,255,.55)}
+.dropdown .header{
+  display:flex;align-items:center;gap:10px;padding:10px 14px 12px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:4px;
+}
+.dropdown .header .swatch{width:18px;height:18px;background:var(--lime);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;color:#000;font:800 11px/1 "JetBrains Mono",sans-serif}
+.dropdown .header .title{font:700 13px/1 "JetBrains Mono",sans-serif;letter-spacing:.04em}
+.dropdown .header .right{margin-left:auto;font:500 10.5px/1 "JetBrains Mono",sans-serif;color:rgba(255,255,255,.55)}
+.dropdown .footer{
+  display:flex;align-items:center;gap:14px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);margin-top:6px;
+  color:rgba(255,255,255,.6);font:500 11px/1 "JetBrains Mono",sans-serif;
+}
+.dropdown .footer span{flex:1}
+.dropdown .footer kbd{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 6px;font:600 10px/1 "JetBrains Mono",sans-serif;color:#fff;
+}
+
+/* ------ Sections ------ */
+.section{padding:80px clamp(20px,4vw,56px)}
+.section h2{
+  font-family:"Silkscreen",ui-monospace,monospace;font-weight:700;
+  font-size:clamp(2rem,5vw,3.6rem);line-height:.95;letter-spacing:0;margin:0 0 18px;
+}
+.section p.lead{font-size:1.05rem;max-width:60ch;margin:0 0 36px}
+
+/* features */
+.features{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px;
+  border-top:2px solid var(--ink);padding-top:48px;
+}
+@media(max-width:900px){.features{grid-template-columns:1fr;gap:28px}}
+.feat .num{font:700 1rem/1 "JetBrains Mono",ui-monospace,monospace;color:var(--ink);background:var(--ink);color:var(--lime);padding:5px 8px;border-radius:4px;display:inline-block;margin-bottom:14px;letter-spacing:.04em}
+.feat h3{font-size:1.25rem;line-height:1.2;margin:0 0 8px;font-weight:700}
+.feat h3 mark{background:var(--ink);color:var(--lime);padding:1px 6px;border-radius:3px}
+.feat p{margin:0;color:var(--ink);font-size:.97rem;line-height:1.55}
+
+/* dark slab */
+.slab{background:var(--ink);color:var(--lime);}
+.slab h2{color:var(--lime)}
+.slab p.lead{color:rgba(232,241,44,.85)}
+.slab .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;border-top:2px solid var(--lime);padding-top:32px;margin-top:24px}
+@media(max-width:900px){.slab .grid{grid-template-columns:1fr}}
+.slab .card{
+  border:1.5px solid rgba(232,241,44,.4);border-radius:16px;padding:24px;
+  background:rgba(232,241,44,.03);
+}
+.slab .card h4{margin:0 0 8px;font:700 .82rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--lime)}
+.slab .card p{margin:0;color:rgba(232,241,44,.78);font-size:.95rem;line-height:1.55}
+.slab .card code{font-family:"JetBrains Mono",ui-monospace,monospace;color:var(--lime);background:rgba(232,241,44,.08);padding:1px 6px;border-radius:3px;font-size:.85em}
+
+/* install panel */
+.install{
+  background:var(--ink);color:var(--lime);border-radius:16px;padding:6px;
+  display:flex;align-items:stretch;font:500 .92rem/1.4 "JetBrains Mono",ui-monospace,monospace;
+  max-width:680px;margin:0 0 14px;border:1.5px solid rgba(232,241,44,.4);
+  position:relative;overflow:hidden;
+}
+.install pre{
+  margin:0;padding:18px 14px 18px 18px;color:var(--lime);flex:1;white-space:pre-wrap;font-size:.92rem;
+}
+.install pre .p{color:rgba(232,241,44,.5);user-select:none}
+.install button{
+  border:0;background:rgba(232,241,44,.12);color:var(--lime);
+  border-left:1px solid rgba(232,241,44,.25);
+  font:700 .72rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;
+  padding:0 18px;cursor:pointer;text-transform:uppercase;
+}
+.install button:hover{background:rgba(232,241,44,.2)}
+.install button.copied{background:var(--lime);color:#000}
+
+/* faq */
+.faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 56px;border-top:2px solid var(--ink);padding-top:32px}
+@media(max-width:760px){.faq{grid-template-columns:1fr;gap:18px}}
+.faq h3{margin:0 0 8px;font-size:1.05rem;font-weight:700}
+.faq p{margin:0;color:var(--ink)}
+.faq code{font:500 .88em/1.2 "JetBrains Mono",ui-monospace,monospace;background:rgba(0,0,0,.08);padding:1px 6px;border-radius:3px}
+
+/* footer */
+footer{
+  background:var(--ink);color:rgba(232,241,44,.7);
+  padding:44px clamp(20px,4vw,56px) 60px;
+  font-size:.86rem;line-height:1.6;
+}
+footer h4{font-family:"Silkscreen",ui-monospace,monospace;font-weight:700;color:var(--lime);margin:0 0 8px;font-size:2rem;letter-spacing:0;line-height:1}
+footer .row{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;margin-top:18px;border-top:1px solid rgba(232,241,44,.18);padding-top:14px}
+footer a{color:var(--lime);text-decoration:none;border-bottom:1px solid rgba(232,241,44,.4)}
+footer a:hover{color:#fff;border-bottom-color:#fff}
+footer .legal{max-width:64ch}
+footer .legal strong{color:var(--lime)}
+footer .links{display:flex;gap:18px;flex-wrap:wrap;font:600 .76rem/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase}
+
+/* utility */
+.kbd{
+  display:inline-block;border:1.5px solid var(--ink);border-bottom-width:3px;border-radius:5px;
+  padding:1px 7px;font:600 .8rem/1.4 "JetBrains Mono",ui-monospace,monospace;background:rgba(255,255,255,.4);
+}
+
+/* glitchy reveal on big word */
+@media (prefers-reduced-motion: no-preference){
+  .bigword{animation:slide-in .6s cubic-bezier(.2,.8,.2,1) both}
+}
+@keyframes slide-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* responsive size for the headline */
+@media(max-width:520px){
+  .bigword{font-size:24vw}
+}
+</style>
+</head>
+<body>
+
+<!-- Real screenshot: the actual macOS menu bar with BlackBar running on a yellow desktop -->
+<img class="macbar-real" src="menubar-real.png" alt="Real macOS menu bar with BlackBar running on a yellow desktop — green dot, active vCPU count, sparkline" width="3008" height="60">
+<p class="macbar-caption" aria-hidden="true">↑ that's an actual screenshot. green dot · live vCPU · sparkline · your menu bar.</p>
+
+<!-- Top nav -->
+<nav class="nav">
+  <a class="logo" href="/">
+    <span class="swatch"></span>
+    <b>BLACKBAR</b>
+  </a>
+  <span class="links" style="display:flex;gap:22px">
+    <a href="#features">Features</a>
+    <a href="#install">Install</a>
+    <a href="#faq">FAQ</a>
+    <a href="https://github.com/openclaw/BlackBar" rel="noopener">Source</a>
+  </span>
+  <span class="right">
+    <a href="https://github.com/openclaw/BlackBar" rel="noopener">GitHub →</a>
+  </span>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="brand-mark-row">
+    <span class="pill">macOS · Apple Silicon · Intel</span>
+    <span class="pill">v0.1 · Free · MIT</span>
+  </div>
+
+  <h1 class="bigword">BLACK<span class="bar">BAR</span></h1>
+
+  <div class="subhero">
+    <div>
+      <p class="disclaimer"><span class="marker"></span> INDEPENDENT TOOL · NOT AFFILIATED WITH BLACKSMITH</p>
+      <p class="tagline">Your Blacksmith CI status, in your menu bar.</p>
+      <p class="lede">A tiny, native macOS app that watches the <em>Blacksmith</em> public status page and your live runners — so you know <em>before the queue burns</em> whether to merge, re-run, or take a walk.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#install">Get BlackBar</a>
+        <a class="btn btn-ghost" href="https://github.com/openclaw/BlackBar" rel="noopener">View Source</a>
+      </div>
+      <p class="note">Free. Open source. Zero telemetry. Your Blacksmith session stays in your Keychain.</p>
+    </div>
+
+    <!-- Mock dropdown menu -->
+    <div class="dropdown" aria-hidden="true">
+      <div class="header">
+        <span class="swatch">B</span>
+        <span class="title">BLACKBAR</span>
+        <span class="right">openclaw · refreshed 14s ago</span>
+      </div>
+      <div class="row live">
+        <span class="lbl">Blacksmith status</span>
+        <span class="badge"><i></i> OPERATIONAL</span>
+      </div>
+      <div class="row">
+        <span class="lbl">Active vCPU</span>
+        <span class="val">28 / —</span>
+      </div>
+      <div class="row">
+        <span class="lbl">Active jobs</span>
+        <span class="val">4</span>
+      </div>
+      <div class="row divider"></div>
+      <div class="row section">RUNNING</div>
+      <div class="row job">
+        <span class="name">build · macos-15</span>
+        <span class="repo">openclaw/blackbar</span>
+      </div>
+      <div class="row job">
+        <span class="name">test · ubuntu-2404</span>
+        <span class="repo">openclaw/acpx</span>
+      </div>
+      <div class="row job">
+        <span class="name">e2e · 4vcpu</span>
+        <span class="repo">openclaw/clickclack</span>
+      </div>
+      <div class="row job">
+        <span class="name">lint · 2vcpu</span>
+        <span class="repo">openclaw/discrawl</span>
+      </div>
+      <div class="row divider"></div>
+      <div class="footer">
+        <span>Refresh every 60s</span>
+        <kbd>⌘R</kbd>
+        <kbd>⌘,</kbd>
+      </div>
+    </div>
+  </div>
+
+  <!-- diff -->
+  <div style="margin-top:56px;max-width:760px">
+    <p style="font:600 .82rem/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px">Looks like this in your menu bar:</p>
+    <pre class="diff" aria-label="menu bar appearance"><span class="line minus">- screen real estate spent on tabs you don't read</span><span class="line plus">+ <span class="swatch"></span>  4 ▍▎▏▎▌▏▌▍▎▏▎▌  12:05</span></pre>
+  </div>
+</header>
+
+<!-- Features -->
+<section class="section" id="features">
+  <h2>WATCH THE FORGE.</h2>
+  <p class="lead">BlackBar mirrors what Blacksmith already shows you — in the place you already look.</p>
+
+  <div class="features">
+    <div class="feat">
+      <span class="num">01</span>
+      <h3><mark>Live status</mark> from <code>status.blacksmith.sh</code></h3>
+      <p>Public summary feed, polled every 60 seconds. Green when the forge is hot, orange when a region's wobbling.</p>
+    </div>
+    <div class="feat">
+      <span class="num">02</span>
+      <h3><mark>vCPU counter</mark> for your active runs</h3>
+      <p>Reads runner labels like <code>blacksmith-4vcpu-ubuntu-2404</code> and totals the active vCPU — so you can spot a queue meltdown before your bill does.</p>
+    </div>
+    <div class="feat">
+      <span class="num">03</span>
+      <h3><mark>Tiny graph</mark> right in the menu bar</h3>
+      <p>An 18-bar history of recent activity, crammed into 54 pixels. Glance, don't context-switch.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Dark slab: how it works -->
+<section class="section slab" id="how">
+  <h2>HOW IT WORKS</h2>
+  <p class="lead">No proxies. No scrapers. Two endpoints and a Keychain entry.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>01 · Public status</h4>
+      <p>Fetches <code>status.blacksmith.sh/summary.json</code>. No auth, no spying — same JSON your team's status page already shows.</p>
+    </div>
+    <div class="card">
+      <h4>02 · Your dashboard</h4>
+      <p>Sign in once with Blacksmith's GitHub OAuth in a native WebKit window. Session cookie lands in your <code>Keychain</code>.</p>
+    </div>
+    <div class="card">
+      <h4>03 · Local only</h4>
+      <p>BlackBar talks to Blacksmith. Nothing else. <code>0</code> third-party SDKs. <code>0</code> telemetry. <code>0</code> background sync to anyone but you.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<section class="section" id="install">
+  <h2>INSTALL.</h2>
+  <p class="lead">Source build for now. Notarized binaries soon — star the repo if you want one.</p>
+
+  <div class="install" id="install-card">
+    <pre id="install-cmd"><span class="p">$ </span>git clone https://github.com/openclaw/BlackBar.git
+<span class="p">$ </span>cd BlackBar &amp;&amp; make app
+<span class="p">$ </span>open build/BlackBar.app</pre>
+    <button id="copy" type="button">COPY</button>
+  </div>
+  <p class="note">Requires macOS 14+. Swift 6 toolchain. <a href="https://github.com/openclaw/BlackBar#build-run">Full build instructions →</a></p>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <h2>QUESTIONS.</h2>
+  <div class="faq">
+    <div>
+      <h3>Is this Blacksmith?</h3>
+      <p>No. BlackBar is an unofficial, independent menu bar app made by a Blacksmith customer who got tired of clicking. <strong>Not affiliated with, sponsored by, or endorsed by Blacksmith.</strong> "Blacksmith" and the Blacksmith logo are trademarks of their respective owners.</p>
+    </div>
+    <div>
+      <h3>Does it ship my data anywhere?</h3>
+      <p>No. BlackBar only talks to <code>status.blacksmith.sh</code> and <code>app.blacksmith.sh</code>. No analytics, no crash reporters, no servers in between.</p>
+    </div>
+    <div>
+      <h3>How does login work?</h3>
+      <p>The same GitHub OAuth flow you'd use on the Blacksmith dashboard, in a native WebKit window. The resulting session cookie is stored in your macOS Keychain. Sign out wipes it.</p>
+    </div>
+    <div>
+      <h3>What if Blacksmith changes their API?</h3>
+      <p>Open an issue on GitHub. BlackBar is small enough that fixes ship the same week. The status feed is public and the dashboard endpoints are stable enough to be useful.</p>
+    </div>
+    <div>
+      <h3>Will this work without a Blacksmith account?</h3>
+      <p>Partially. The public status feed works for everyone. The vCPU counter and active-jobs list need a logged-in Blacksmith session.</p>
+    </div>
+    <div>
+      <h3>Why "BlackBar"?</h3>
+      <p>Because it's a black bar in your menu bar that watches Blacksmith. The naming committee was a coffee.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <h4>BLACKBAR</h4>
+  <p class="legal">
+    <strong>BlackBar is an independent third-party tool.</strong>
+    It is not affiliated with, sponsored by, endorsed by, or otherwise associated with
+    Blacksmith Operations or any of its products. "Blacksmith" and the Blacksmith
+    logo are trademarks of their respective owners and are referenced here only to
+    describe the service this app interoperates with. If you're the Blacksmith team
+    and you'd rather we change the name, email
+    <a href="mailto:steipete@gmail.com">steipete@gmail.com</a>.
+  </p>
+  <div class="row">
+    <span>© 2026 · MIT licensed · Built by <a href="https://steipete.me">@steipete</a></span>
+    <span class="links">
+      <a href="https://github.com/openclaw/BlackBar" rel="noopener">GitHub</a>
+      <a href="https://github.com/openclaw/BlackBar/issues" rel="noopener">Issues</a>
+      <a href="https://blackbar.sh">blackbar.sh</a>
+      <a href="https://blackbar.bot">blackbar.bot</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+// install copy
+(function(){
+  var btn = document.getElementById('copy');
+  var cmd = document.getElementById('install-cmd');
+  if(!btn || !cmd) return;
+  btn.addEventListener('click', function(){
+    var text = cmd.innerText.replace(/^\s*\$\s?/gm, '');
+    navigator.clipboard.writeText(text).then(function(){
+      btn.classList.add('copied');
+      var prev = btn.textContent;
+      btn.textContent = 'COPIED';
+      setTimeout(function(){ btn.classList.remove('copied'); btn.textContent = prev; }, 1500);
+    });
+  });
+})();
+</script>
+</body>
+</html>
