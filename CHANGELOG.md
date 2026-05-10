@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.1.1 - Unreleased
+
 ## 0.1.0 - 2026-05-10
 
 - Add the initial native macOS menu bar app for Blacksmith CI status and live vCPU usage.
