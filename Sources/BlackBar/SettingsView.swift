@@ -67,7 +67,7 @@ enum SettingsTab: CaseIterable, Hashable {
 
     static let defaultWidth: CGFloat = 540
     static let dashboardWidth: CGFloat = 620
-    static let windowHeight: CGFloat = 430
+    static let windowHeight: CGFloat = 473
 
     var title: String {
         switch self {
