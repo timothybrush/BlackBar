@@ -14,11 +14,12 @@ enum StatusBarImage {
             history: history,
             in: graphRect,
             active: active,
-            activeColor: NSColor.black.withAlphaComponent(0.82),
-            inactiveColor: NSColor.black.withAlphaComponent(0.34)
+            activeColor: NSColor.labelColor,
+            inactiveColor: NSColor.labelColor.withAlphaComponent(0.35)
         )
 
         image.unlockFocus()
+        image.isTemplate = true
         return image
     }
 

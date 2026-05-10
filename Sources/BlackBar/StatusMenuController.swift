@@ -216,30 +216,18 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
             history: self.model.history,
             active: self.model.snapshot.usage.activeVCPU
         )
-        image.isTemplate = false
         self.statusItem?.length = NSStatusItem.variableLength
-        button.title = ""
-        button.attributedTitle = self.statusTitle()
+        button.attributedTitle = NSAttributedString()
+        button.title = self.statusTitle()
         button.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .semibold)
         button.image = image
         button.imagePosition = .imageRight
         button.toolTip = "BlackBar: \(self.model.snapshot.usage.activeVCPU) active vCPU"
     }
 
-    private func statusTitle() -> NSAttributedString {
+    private func statusTitle() -> String {
         let needsStatusDot = self.model.snapshot.isOperational == false
-        let text = needsStatusDot ? "● \(self.model.snapshot.usage.activeVCPU)" : "\(self.model.snapshot.usage.activeVCPU)"
-        let title = NSMutableAttributedString(
-            string: text,
-            attributes: [
-                .font: NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .semibold),
-                .foregroundColor: NSColor.black
-            ]
-        )
-        if needsStatusDot {
-            title.addAttribute(.foregroundColor, value: NSColor.systemOrange, range: NSRange(location: 0, length: 1))
-        }
-        return title
+        return needsStatusDot ? "● \(self.model.snapshot.usage.activeVCPU)" : "\(self.model.snapshot.usage.activeVCPU)"
     }
 
     private func scheduleTimer(interval: TimeInterval) {
