@@ -19,6 +19,24 @@ final class AppModel: ObservableObject {
             onPollIntervalChange?(pollInterval)
         }
     }
+    @Published var notifyStatusChanges: Bool {
+        didSet {
+            defaults.set(notifyStatusChanges, forKey: DefaultsKey.notifyStatusChanges)
+            if notifyStatusChanges { Task { await Notifications.shared.requestAuthorizationIfNeeded() } }
+        }
+    }
+    @Published var notifyJobFinished: Bool {
+        didSet {
+            defaults.set(notifyJobFinished, forKey: DefaultsKey.notifyJobFinished)
+            if notifyJobFinished { Task { await Notifications.shared.requestAuthorizationIfNeeded() } }
+        }
+    }
+    @Published var notifyIncidents: Bool {
+        didSet {
+            defaults.set(notifyIncidents, forKey: DefaultsKey.notifyIncidents)
+            if notifyIncidents { Task { await Notifications.shared.requestAuthorizationIfNeeded() } }
+        }
+    }
 
     var onSnapshotChange: (() -> Void)?
     var onPollIntervalChange: ((TimeInterval) -> Void)?
@@ -34,6 +52,9 @@ final class AppModel: ObservableObject {
         let interval = defaults.double(forKey: DefaultsKey.pollInterval)
         pollInterval = interval > 0 ? interval : 60
         history = defaults.array(forKey: DefaultsKey.history) as? [Int] ?? []
+        notifyStatusChanges = defaults.bool(forKey: DefaultsKey.notifyStatusChanges)
+        notifyJobFinished = defaults.bool(forKey: DefaultsKey.notifyJobFinished)
+        notifyIncidents = defaults.bool(forKey: DefaultsKey.notifyIncidents)
         Task { await loadAuthState() }
     }
 
@@ -149,6 +170,7 @@ final class AppModel: ObservableObject {
     }
 
     private func apply(_ newSnapshot: DashboardSnapshot) {
+        let previousSnapshot = snapshot
         snapshot = newSnapshot
         if newSnapshot.usage.historyVCPU.isEmpty {
             history.append(max(0, newSnapshot.usage.activeVCPU))
@@ -159,7 +181,19 @@ final class AppModel: ObservableObject {
             history.removeFirst(history.count - 48)
         }
         defaults.set(history, forKey: DefaultsKey.history)
+        emitNotifications(previous: previousSnapshot, current: newSnapshot)
         onSnapshotChange?()
+    }
+
+    private func emitNotifications(previous: DashboardSnapshot, current: DashboardSnapshot) {
+        let preferences = NotificationPreferences(
+            statusChanges: notifyStatusChanges,
+            jobFinished: notifyJobFinished,
+            incidents: notifyIncidents
+        )
+        for event in NotificationPlanner.events(previous: previous, current: current, preferences: preferences) {
+            Task { await Notifications.shared.post(event) }
+        }
     }
 
     private static func errorMessage(_ error: Error) -> String {
@@ -197,6 +231,9 @@ enum DefaultsKey {
     static let repoFilter = "repoFilter"
     static let pollInterval = "pollInterval"
     static let history = "history"
+    static let notifyStatusChanges = "notifyStatusChanges"
+    static let notifyJobFinished = "notifyJobFinished"
+    static let notifyIncidents = "notifyIncidents"
 }
 
 enum AppError: LocalizedError {
