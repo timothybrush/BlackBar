@@ -4,7 +4,8 @@ import SwiftUI
 @MainActor
 final class StatusMenuController: NSObject, NSMenuDelegate {
     private enum Metrics {
-        static let menuWidth: CGFloat = 320
+        static let menuWidth: CGFloat = 360
+        static let jobsMenuWidth: CGFloat = 620
     }
 
     private let model: AppModel
@@ -55,8 +56,17 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     }
 
     func menuWillOpen(_ menu: NSMenu) {
+        guard menu === self.menu else { return }
         self.rebuildMenu()
         Task { await self.model.refresh() }
+    }
+
+    func menu(_ menu: NSMenu, willHighlight item: NSMenuItem?) {
+        self.updateHighlights(in: menu, highlightedItem: item)
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        self.updateHighlights(in: menu, highlightedItem: nil)
     }
 
     @objc private func refreshNow() {
@@ -67,8 +77,8 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         SettingsOpener.shared.open()
     }
 
-    @objc private func checkForUpdates() {
-        SparkleController.shared.checkForUpdates()
+    @objc private func installUpdate() {
+        SparkleController.shared.installUpdate()
     }
 
     @objc private func openBlacksmith() {
@@ -94,6 +104,12 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     @objc private func openRun(_ sender: NSMenuItem) {
         guard let urlString = sender.representedObject as? String, let url = URL(string: urlString) else { return }
         NSWorkspace.shared.open(url)
+    }
+
+    private func openURLString(_ urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        NSWorkspace.shared.open(url)
+        self.menu.cancelTracking()
     }
 
     @objc private func quit() {
@@ -124,10 +140,9 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         self.menu.addItem(self.actionItem("Open Blacksmith Status", action: #selector(self.openBlacksmithStatus), image: "waveform.path.ecg"))
         self.menu.addItem(self.actionItem("Open GitHub Actions", action: #selector(self.openGitHubActions), image: "arrow.up.right.square"))
         self.menu.addItem(self.actionItem(self.model.authState == .disconnected ? "Login with GitHub" : "Sign Out", action: #selector(self.loginOrSignOut), image: "person.crop.circle"))
-        let updateTitle = SparkleController.shared.updateStatus.isUpdateReady ? "Restart to Update" : "Check for Updates…"
-        let updateItem = self.actionItem(updateTitle, action: #selector(self.checkForUpdates), image: "arrow.down.circle")
-        updateItem.isEnabled = SparkleController.shared.canCheckForUpdates
-        self.menu.addItem(updateItem)
+        if SparkleController.shared.updateStatus.isUpdateReady {
+            self.menu.addItem(self.actionItem("Update Ready, Restart Now?", action: #selector(self.installUpdate), image: "arrow.down.circle"))
+        }
         self.menu.addItem(self.actionItem("Settings…", action: #selector(self.openSettings), image: "gearshape"))
 
         self.menu.addItem(.separator())
@@ -151,18 +166,22 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         item.image = NSImage(systemSymbolName: "cpu", accessibilityDescription: nil)
         let submenu = NSMenu()
         submenu.autoenablesItems = false
+        submenu.delegate = self
 
-        if !self.model.snapshot.usage.runs.isEmpty {
-            for run in self.model.snapshot.usage.runs {
-                let runItem = NSMenuItem(
-                    title: "\(run.activeVCPU) vCPU  \(run.repository)  \(run.title)",
-                    action: #selector(self.openRun(_:)),
-                    keyEquivalent: ""
-                )
-                runItem.target = self
-                runItem.representedObject = run.url
-                runItem.image = NSImage(systemSymbolName: "play.circle", accessibilityDescription: nil)
-                submenu.addItem(runItem)
+        let activeRuns = self.model.snapshot.usage.runs
+        let visibleRuns = activeRuns.isEmpty ? self.model.snapshot.usage.recentJobs : activeRuns
+
+        if !visibleRuns.isEmpty {
+            if activeRuns.isEmpty {
+                let note = activeJobs > 0
+                    ? "Active detail unavailable; latest Blacksmith jobs"
+                    : "Latest Blacksmith jobs"
+                submenu.addItem(self.disabledItem(note))
+                submenu.addItem(.separator())
+            }
+
+            for run in visibleRuns {
+                submenu.addItem(self.jobItem(for: run, isFallback: activeRuns.isEmpty))
             }
         } else {
             let activePlatforms = self.model.snapshot.usage.platformUsage
@@ -187,6 +206,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
             }
         }
 
+        self.refreshViewHeights(in: submenu, width: Metrics.jobsMenuWidth)
         item.submenu = submenu
         return item
     }
@@ -213,6 +233,39 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         item.target = self
         item.image = NSImage(systemSymbolName: image, accessibilityDescription: nil)
         return item
+    }
+
+    private func jobItem(for run: WorkflowRunUsage, isFallback: Bool) -> NSMenuItem {
+        let item = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+        item.isEnabled = true
+        item.representedObject = run.url
+        item.toolTip = self.jobTooltip(for: run)
+        let highlightState = MenuItemHighlightState()
+        item.view = MenuItemHostingView(
+            rootView: AnyView(
+                JobMenuRowView(run: run, isFallback: isFallback) { [weak self] in
+                    self?.openURLString(run.url)
+                }
+            ),
+            highlightState: highlightState
+        )
+        return item
+    }
+
+    private func jobTooltip(for run: WorkflowRunUsage) -> String {
+        var parts = [run.repository, run.workflowName, run.title]
+        if let branchName = run.branchName, !branchName.isEmpty {
+            parts.append(branchName)
+        }
+        if let actorLogin = run.actorLogin, !actorLogin.isEmpty {
+            parts.append("@\(actorLogin)")
+        }
+        if let commitMessage = run.commitMessage?.components(separatedBy: .newlines).first,
+           !commitMessage.isEmpty
+        {
+            parts.append(commitMessage)
+        }
+        return parts.filter { !$0.isEmpty }.joined(separator: " - ")
     }
 
     private func applyStatusItemAppearance() {
@@ -244,11 +297,18 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         }
     }
 
-    private func refreshViewHeights(in menu: NSMenu) {
+    private func refreshViewHeights(in menu: NSMenu, width: CGFloat = Metrics.menuWidth) {
         for item in menu.items {
             guard let view = item.view, let measuring = view as? MenuItemMeasuring else { continue }
-            let height = measuring.measuredHeight(width: Metrics.menuWidth)
-            view.frame = NSRect(x: 0, y: 0, width: Metrics.menuWidth, height: height)
+            let height = measuring.measuredHeight(width: width)
+            view.frame = NSRect(x: 0, y: 0, width: width, height: height)
+        }
+    }
+
+    private func updateHighlights(in menu: NSMenu, highlightedItem: NSMenuItem?) {
+        for item in menu.items {
+            guard let highlighting = item.view as? MenuItemHighlighting else { continue }
+            highlighting.setHighlighted(item === highlightedItem && item.isEnabled)
         }
     }
 }

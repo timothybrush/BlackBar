@@ -5,6 +5,9 @@
 - Add opt-in macOS notifications for Blacksmith status changes, new incidents, and finished jobs (#1). Thanks @mvanhorn.
 - Add a menu link to the public Blacksmith status page.
 - Treat empty or null Blacksmith core-usage API responses as zero usage instead of showing a decode error.
+- Show a stacked 24-hour vCPU usage chart with platform buckets and peak/average stats in the menu.
+- Show richer SwiftUI Blacksmith job rows with branch, actor, PR, runner, commit, and timing details.
+- Only show the menu update action once a Sparkle update is ready to install.
 
 ## 0.1.3 - 2026-05-10
 

@@ -41,39 +41,56 @@ struct BlacksmithDashboardClient {
         let statusCounts = Dictionary(grouping: relevantJobs, by: { $0.status.normalizedRunStatus })
             .mapValues(\.count)
         let runnerTypes = Array(Set(relevantJobs.compactMap(\.runnerType))).sorted()
-        let runs = active.prefix(20).map { job in
-            WorkflowRunUsage(
-                id: job.id,
-                repository: job.repositoryName,
-                title: job.name,
-                workflowName: job.workflowName,
-                url: job.githubURL,
-                activeVCPU: job.vcpu,
-                activeJobs: 1,
-                queuedJobs: 0,
-                jobs: [
-                    JobUsage(
-                        id: job.id,
-                        name: job.name,
-                        status: job.status,
-                        url: job.githubURL,
-                        vcpu: job.vcpu,
-                        labels: [job.runnerType ?? "unknown"]
-                    )
-                ]
-            )
-        }
+        let activeRuns = active.prefix(20).map(Self.workflowRun)
+        let recentJobs = relevantJobs.prefix(20).map(Self.workflowRun)
 
         return BlacksmithUsage(
             activeVCPU: core.total.vcpus,
             activeJobs: core.total.jobs,
             queuedJobs: queued.count,
-            runs: Array(runs),
+            runs: Array(activeRuns),
+            recentJobs: Array(recentJobs),
             fetchedJobs: relevantJobs.count,
             statusCounts: statusCounts,
             runnerTypes: runnerTypes,
             historyVCPU: samples.map(\.total.vcpus),
+            historySamples: samples.map(\.historySample),
             platformUsage: core.platformUsage
+        )
+    }
+
+    private static func workflowRun(from job: BlacksmithJobRun) -> WorkflowRunUsage {
+        WorkflowRunUsage(
+            id: job.id,
+            repository: job.repositoryName,
+            title: job.name,
+            workflowName: job.workflowName,
+            url: job.githubURL,
+            activeVCPU: job.vcpu,
+            activeJobs: job.status.normalizedRunStatus == "in_progress" ? 1 : 0,
+            queuedJobs: job.status.normalizedRunStatus == "queued" ? 1 : 0,
+            jobs: [
+                JobUsage(
+                    id: job.id,
+                    name: job.name,
+                    status: job.status,
+                    url: job.githubURL,
+                    vcpu: job.vcpu,
+                    labels: [job.runnerType ?? "unknown"]
+                )
+            ],
+            status: job.status,
+            branchName: job.branchName,
+            runnerType: job.runnerType,
+            runnerName: job.runnerName,
+            actorLogin: job.actor?.login,
+            pullRequestNumber: job.pullRequest?.number,
+            pullRequestURL: job.pullRequest?.htmlURL,
+            commitSHA: job.headCommit?.sha,
+            commitMessage: job.headCommit?.message,
+            startedAt: Self.date(from: job.startedAt),
+            updatedAt: Self.date(from: job.updatedAt),
+            durationSeconds: job.durationSeconds
         )
     }
 
@@ -116,6 +133,13 @@ struct BlacksmithDashboardClient {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter.string(from: date)
     }
+
+    private static func date(from string: String?) -> Date? {
+        guard let string else { return nil }
+        let fractionalFormatter = ISO8601DateFormatter()
+        fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fractionalFormatter.date(from: string) ?? ISO8601DateFormatter().date(from: string)
+    }
 }
 
 struct CoreUsageSnapshot {
@@ -146,6 +170,10 @@ struct CoreUsageSnapshot {
             "arm64": arm64,
             "macos": macos
         ]
+    }
+
+    var historySample: CoreUsageHistorySample {
+        CoreUsageHistorySample(amd64: amd64, arm64: arm64, macos: macos)
     }
 }
 
@@ -236,6 +264,15 @@ private struct BlacksmithJobRun: Decodable {
     var repositoryName: String
     var githubURL: String
     var runnerType: String?
+    var title: String?
+    var branchName: String?
+    var runnerName: String?
+    var actor: BlacksmithActor?
+    var pullRequest: BlacksmithPullRequest?
+    var headCommit: BlacksmithHeadCommit?
+    var startedAt: String?
+    var updatedAt: String?
+    var durationSeconds: Int?
 
     var vcpu: Int {
         RunnerLabel.vcpu(from: runnerType ?? "")
@@ -249,7 +286,35 @@ private struct BlacksmithJobRun: Decodable {
         case repositoryName = "repository_name"
         case githubURL = "github_url"
         case runnerType = "runner_type"
+        case title
+        case branchName = "branch_name"
+        case runnerName = "runner_name"
+        case actor
+        case pullRequest = "pull_request"
+        case headCommit = "head_commit"
+        case startedAt = "started_at"
+        case updatedAt = "updated_at"
+        case durationSeconds = "duration_seconds"
     }
+}
+
+private struct BlacksmithActor: Decodable {
+    var login: String?
+}
+
+private struct BlacksmithPullRequest: Decodable {
+    var number: Int?
+    var htmlURL: String?
+
+    enum CodingKeys: String, CodingKey {
+        case number
+        case htmlURL = "html_url"
+    }
+}
+
+private struct BlacksmithHeadCommit: Decodable {
+    var sha: String?
+    var message: String?
 }
 
 enum RunnerLabel {

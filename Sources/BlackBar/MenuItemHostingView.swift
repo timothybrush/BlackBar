@@ -7,7 +7,46 @@ protocol MenuItemMeasuring: AnyObject {
 }
 
 @MainActor
-final class MenuItemHostingView: NSView, MenuItemMeasuring {
+protocol MenuItemHighlighting: AnyObject {
+    func setHighlighted(_ isHighlighted: Bool)
+}
+
+@MainActor
+final class MenuItemHighlightState: ObservableObject {
+    @Published var isHighlighted = false
+}
+
+struct MenuItemHighlightedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var menuItemHighlighted: Bool {
+        get { self[MenuItemHighlightedKey.self] }
+        set { self[MenuItemHighlightedKey.self] = newValue }
+    }
+}
+
+enum MenuHighlightStyle {
+    static func primary(_ isHighlighted: Bool) -> Color {
+        isHighlighted ? .white : .primary
+    }
+
+    static func secondary(_ isHighlighted: Bool) -> Color {
+        isHighlighted ? .white.opacity(0.78) : .secondary
+    }
+
+    static func tertiary(_ isHighlighted: Bool) -> Color {
+        isHighlighted ? .white.opacity(0.6) : .secondary.opacity(0.72)
+    }
+
+    static func selectionBackground(_ isHighlighted: Bool) -> Color {
+        isHighlighted ? Color.accentColor : .clear
+    }
+}
+
+@MainActor
+final class MenuItemHostingView: NSView, MenuItemMeasuring, MenuItemHighlighting {
     private enum Metrics {
         static let proposedHeight: CGFloat = 720
         static let maxHeight: CGFloat = 280
@@ -15,6 +54,7 @@ final class MenuItemHostingView: NSView, MenuItemMeasuring {
     }
 
     private let hostingController: NSHostingController<AnyView>
+    private let highlightState: MenuItemHighlightState?
     private var cachedWidth: CGFloat?
     private var cachedHeight: CGFloat?
 
@@ -28,8 +68,12 @@ final class MenuItemHostingView: NSView, MenuItemMeasuring {
         return NSSize(width: self.bounds.width, height: size.height)
     }
 
-    init(rootView: AnyView) {
-        self.hostingController = NSHostingController(rootView: rootView)
+    init(rootView: AnyView, highlightState: MenuItemHighlightState? = nil) {
+        self.highlightState = highlightState
+        let resolvedRootView = highlightState.map {
+            AnyView(MenuItemContainerView(rootView: rootView, highlightState: $0))
+        } ?? rootView
+        self.hostingController = NSHostingController(rootView: resolvedRootView)
         super.init(frame: .zero)
         self.configureHostingView()
     }
@@ -65,6 +109,10 @@ final class MenuItemHostingView: NSView, MenuItemMeasuring {
         return rounded
     }
 
+    func setHighlighted(_ isHighlighted: Bool) {
+        self.highlightState?.isHighlighted = isHighlighted
+    }
+
     private func configureHostingView() {
         self.hostingController.view.translatesAutoresizingMaskIntoConstraints = true
         self.hostingController.view.autoresizingMask = [.width, .height]
@@ -86,5 +134,16 @@ final class MenuItemHostingView: NSView, MenuItemMeasuring {
         }
 
         return Metrics.fallbackHeight
+    }
+}
+
+private struct MenuItemContainerView: View {
+    let rootView: AnyView
+    @ObservedObject var highlightState: MenuItemHighlightState
+
+    var body: some View {
+        self.rootView
+            .environment(\.menuItemHighlighted, self.highlightState.isHighlighted)
+            .background(MenuHighlightStyle.selectionBackground(self.highlightState.isHighlighted))
     }
 }

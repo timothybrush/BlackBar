@@ -56,10 +56,12 @@ struct BlacksmithUsage {
     var activeJobs: Int
     var queuedJobs: Int
     var runs: [WorkflowRunUsage]
+    var recentJobs: [WorkflowRunUsage] = []
     var fetchedJobs: Int = 0
     var statusCounts: [String: Int] = [:]
     var runnerTypes: [String] = []
     var historyVCPU: [Int] = []
+    var historySamples: [CoreUsageHistorySample] = []
     var platformUsage: [String: CoreUsage] = [:]
 
     var debugSummary: String {
@@ -85,6 +87,27 @@ struct CoreUsage: Codable, Hashable {
     var jobs: Int
 }
 
+struct CoreUsageHistorySample: Hashable {
+    var amd64: CoreUsage
+    var arm64: CoreUsage
+    var macos: CoreUsage
+
+    var total: CoreUsage {
+        CoreUsage(
+            vcpus: amd64.vcpus + arm64.vcpus + macos.vcpus,
+            jobs: amd64.jobs + arm64.jobs + macos.jobs
+        )
+    }
+
+    var platformUsage: [String: CoreUsage] {
+        [
+            "amd64": amd64,
+            "arm64": arm64,
+            "macos": macos
+        ]
+    }
+}
+
 struct WorkflowRunUsage: Identifiable, Hashable {
     var id: Int64
     var repository: String
@@ -95,6 +118,18 @@ struct WorkflowRunUsage: Identifiable, Hashable {
     var activeJobs: Int
     var queuedJobs: Int
     var jobs: [JobUsage]
+    var status: String = ""
+    var branchName: String?
+    var runnerType: String?
+    var runnerName: String?
+    var actorLogin: String?
+    var pullRequestNumber: Int?
+    var pullRequestURL: String?
+    var commitSHA: String?
+    var commitMessage: String?
+    var startedAt: Date?
+    var updatedAt: Date?
+    var durationSeconds: Int?
 }
 
 struct JobUsage: Identifiable, Hashable {
