@@ -32,15 +32,8 @@ struct MenuHeaderView: View {
                 WorkflowRunDistributionChart(buckets: self.snapshot.usage.workflowDistribution)
             }
 
-            HStack(spacing: 7) {
-                Circle()
-                    .fill(self.snapshot.isOperational ? Color.green : Color.orange)
-                    .frame(width: 7, height: 7)
-                Text(self.snapshot.status.label)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Spacer()
+            if self.snapshot.status.hasActiveNotice {
+                StatusNoticeRow(status: self.snapshot.status)
             }
         }
         .padding(.horizontal, 12)
@@ -68,6 +61,41 @@ struct MenuHeaderView: View {
 
     private static func vcpuText(_ value: Int) -> String {
         String(value)
+    }
+}
+
+private struct StatusNoticeRow: View {
+    var status: BlacksmithStatus
+
+    var body: some View {
+        HStack(spacing: 7) {
+            Circle()
+                .fill(StatusPalette.color(for: self.status))
+                .frame(width: 7, height: 7)
+            Text("\(self.status.noticeKind): \(self.status.noticeTitle ?? self.status.label)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Spacer()
+        }
+    }
+}
+
+enum StatusPalette {
+    static func color(for status: BlacksmithStatus) -> Color {
+        if !status.incidents.isEmpty { return .red }
+        if !status.maintenances.isEmpty { return .blue }
+        return status.pageStatus.uppercased() == "UP" ? .green : .orange
+    }
+
+    static func foreground(for status: BlacksmithStatus, isHighlighted: Bool) -> Color {
+        if isHighlighted { return .white }
+        return self.color(for: status)
+    }
+
+    static func background(for status: BlacksmithStatus, isHighlighted: Bool) -> Color {
+        if isHighlighted { return .white.opacity(0.18) }
+        return self.color(for: status).opacity(0.16)
     }
 }
 

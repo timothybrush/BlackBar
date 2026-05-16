@@ -8,6 +8,7 @@
 - Show a stacked 24-hour vCPU usage chart with platform buckets and peak/average stats in the menu.
 - Show a separate Blacksmith workflow run distribution chart with hover details below the vCPU chart.
 - Show richer SwiftUI Blacksmith job rows with branch, actor, PR, runner, commit, and timing details.
+- Move the Blacksmith status indicator into a compact status-page menu badge unless there is an active notice.
 - Only show the menu update action once a Sparkle update is ready to install.
 
 ## 0.1.3 - 2026-05-10

@@ -137,7 +137,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
 
         self.menu.addItem(.separator())
         self.menu.addItem(self.actionItem("Open Blacksmith", action: #selector(self.openBlacksmith), image: "hammer"))
-        self.menu.addItem(self.actionItem("Open Blacksmith Status", action: #selector(self.openBlacksmithStatus), image: "waveform.path.ecg"))
+        self.menu.addItem(self.statusActionItem())
         self.menu.addItem(self.actionItem("Open GitHub Actions", action: #selector(self.openGitHubActions), image: "arrow.up.right.square"))
         self.menu.addItem(self.actionItem(self.model.authState == .disconnected ? "Login with GitHub" : "Sign Out", action: #selector(self.loginOrSignOut), image: "person.crop.circle"))
         if SparkleController.shared.updateStatus.isUpdateReady {
@@ -232,6 +232,23 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = self
         item.image = NSImage(systemSymbolName: image, accessibilityDescription: nil)
+        return item
+    }
+
+    private func statusActionItem() -> NSMenuItem {
+        let item = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+        item.isEnabled = true
+        item.toolTip = self.model.snapshot.status.label
+        let highlightState = MenuItemHighlightState()
+        item.view = MenuItemHostingView(
+            rootView: AnyView(
+                StatusMenuActionRowView(status: self.model.snapshot.status) { [weak self] in
+                    self?.model.openBlacksmithStatus()
+                    self?.menu.cancelTracking()
+                }
+            ),
+            highlightState: highlightState
+        )
         return item
     }
 

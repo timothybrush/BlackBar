@@ -31,6 +31,29 @@ struct BlacksmithStatus {
         pageStatus.uppercased() == "UP" && incidents.isEmpty
     }
 
+    var hasActiveNotice: Bool {
+        !incidents.isEmpty || !maintenances.isEmpty || pageStatus.uppercased() != "UP"
+    }
+
+    var badgeLabel: String {
+        if !incidents.isEmpty { return "INCIDENT" }
+        if !maintenances.isEmpty { return "MAINT" }
+        let normalized = pageStatus.uppercased()
+        return normalized == "UP" ? "UP" : normalized
+    }
+
+    var noticeKind: String {
+        if !incidents.isEmpty { return "Incident" }
+        if !maintenances.isEmpty { return "Maintenance" }
+        return "Status"
+    }
+
+    var noticeTitle: String? {
+        if let first = incidents.first { return first.name }
+        if let first = maintenances.first { return first.name }
+        return pageStatus.uppercased() == "UP" ? nil : pageStatus
+    }
+
     var label: String {
         if isOperational {
             return "All systems operational"
