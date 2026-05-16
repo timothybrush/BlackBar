@@ -2,6 +2,8 @@
 
 ## 0.2.1 - Unreleased
 
+- Document the Homebrew cask install command in the README.
+
 ## 0.2.0 - 2026-05-16
 
 - Add opt-in macOS notifications for Blacksmith status changes, new incidents, and finished jobs (#1). Thanks @mvanhorn.

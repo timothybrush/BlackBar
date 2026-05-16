@@ -38,7 +38,13 @@ electron. No telemetry. No servers in between.
 
 ## Install
 
-Grab the latest signed, notarized build:
+With Homebrew:
+
+```sh
+brew install --cask steipete/tap/blackbar
+```
+
+Or grab the latest signed, notarized build:
 
 > Download `BlackBar-<version>.zip` from
 > [Releases](https://github.com/steipete/BlackBar/releases/latest), unzip, and
