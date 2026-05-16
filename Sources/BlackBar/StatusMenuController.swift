@@ -297,12 +297,13 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         button.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .semibold)
         button.image = image
         button.imagePosition = .imageRight
-        button.toolTip = "BlackBar: \(self.model.snapshot.usage.activeVCPU) active vCPU"
+        button.toolTip = "BlackBar: \(self.model.snapshot.usage.activeVCPU) active vCPU, \(self.model.snapshot.usage.activeJobs) active jobs"
     }
 
     private func statusTitle() -> String {
         let needsStatusDot = self.model.snapshot.isOperational == false
-        return needsStatusDot ? "● \(self.model.snapshot.usage.activeVCPU)" : "\(self.model.snapshot.usage.activeVCPU)"
+        let title = "\(self.model.snapshot.usage.activeVCPU)"
+        return needsStatusDot ? "● \(title)" : title
     }
 
     private func scheduleTimer(interval: TimeInterval) {

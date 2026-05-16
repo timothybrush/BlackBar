@@ -9,6 +9,7 @@
 - Show a separate Blacksmith workflow run distribution chart with hover details below the vCPU chart.
 - Show richer SwiftUI Blacksmith job rows with branch, actor, PR, runner, commit, and timing details.
 - Move the Blacksmith status indicator into a compact status-page menu badge unless there is an active notice.
+- Keep the menu bar title compact while including active job count in the tooltip and menu.
 - Only show the menu update action once a Sparkle update is ready to install.
 
 ## 0.1.3 - 2026-05-10
