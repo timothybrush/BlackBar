@@ -3,6 +3,17 @@
     <channel>
         <title>BlackBar</title>
         <item>
+            <title>0.2.0</title>
+            <pubDate>Sat, 16 May 2026 15:06:05 +0100</pubDate>
+            <link>https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml</link>
+            <sparkle:version>5</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul><li>Add opt-in macOS notifications for Blacksmith status changes, new incidents, and finished jobs (#1). Thanks @mvanhorn.</li><li>Add a menu link to the public Blacksmith status page.</li><li>Treat empty or null Blacksmith core-usage API responses as zero usage instead of showing a decode error.</li><li>Show a stacked 24-hour vCPU usage chart with platform buckets and peak/average stats in the menu.</li><li>Show a separate Blacksmith workflow run distribution chart with hover details below the vCPU chart.</li><li>Show richer SwiftUI Blacksmith job rows with branch, actor, PR, runner, commit, and timing details.</li><li>Move the Blacksmith status indicator into a compact status-page menu badge unless there is an active notice.</li><li>Keep the menu bar title compact while including active job count in the tooltip and menu.</li><li>Only show the menu update action once a Sparkle update is ready to install.</li></ul>
+]]></description>
+            <enclosure url="https://github.com/steipete/BlackBar/releases/download/v0.2.0/BlackBar-0.2.0.zip" length="2040543" type="application/octet-stream" sparkle:edSignature="ovQju2sHNP8I+VrOZX78ePf4qDHMw7MNHxXCqHIrLLQ9YH2bnQCyz91oI1g6l44hnfI+9A4qY09ePS7dGIbVAQ=="/>
+        </item>
+        <item>
             <title>0.1.3</title>
             <pubDate>Sun, 10 May 2026 13:06:11 +0100</pubDate>
             <link>https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml</link>
@@ -23,17 +34,6 @@
             <description><![CDATA[<ul><li>Restore native macOS status item tinting by using a template graph image and plain status button title, so menu bar text and graph adapt correctly across light, dark, and tinted backgrounds.</li></ul>
 ]]></description>
             <enclosure url="https://github.com/steipete/BlackBar/releases/download/v0.1.2/BlackBar-0.1.2.zip" length="1636096" type="application/octet-stream" sparkle:edSignature="QS0R8jncTIe3+MuXyOVmPptSH0DNOCAHV87iM9f9rpmwGKUE4h+KGao2yXY/3oti+zQjwKWQBRv+PdwRy80xBg=="/>
-        </item>
-        <item>
-            <title>0.1.1</title>
-            <pubDate>Sun, 10 May 2026 12:35:28 +0100</pubDate>
-            <link>https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml</link>
-            <sparkle:version>2</sparkle:version>
-            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<ul><li>Use high-contrast menu bar text and graph rendering for bright Blacksmith-style desktop backgrounds.</li><li>Remove the duplicate status line from the menu details.</li><li>Replace the app icon artwork with a full-bleed Blacksmith-style neon tile that avoids the white inset gap in Finder and Launchpad.</li></ul>
-]]></description>
-            <enclosure url="https://github.com/steipete/BlackBar/releases/download/v0.1.1/BlackBar-0.1.1.zip" length="1644619" type="application/octet-stream" sparkle:edSignature="ckJYFKQn544KqdyWWrEAua6uheOaVpwMfAKHDwHrnu4dJaTlGjDSC0AeGzNtX+0jbl98Fj3eJ3C0ntJU/Y4hCA=="/>
         </item>
     </channel>
 </rss>
