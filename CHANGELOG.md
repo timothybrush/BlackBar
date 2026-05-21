@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.2.2 - Unreleased
+
 ## 0.2.1 - 2026-05-21
 
 - Add a General setting to launch BlackBar automatically at login.
