@@ -2,7 +2,7 @@
 
 ## 0.2.2 - Unreleased
 
-- Add right-click PNG export for the activity graph, with Shift-right-click saving to Downloads (#2). Thanks @mvanhorn.
+- Add right-click PNG export from the menu graphs, including labeled vCPU and workflow-run snapshots (#2). Thanks @mvanhorn.
 - Clarify Sparkle signing key ownership and validate release signing keys against the embedded public key.
 
 ## 0.2.1 - 2026-05-21

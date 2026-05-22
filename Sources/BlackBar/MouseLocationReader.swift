@@ -4,19 +4,31 @@ import SwiftUI
 @MainActor
 struct MouseLocationReader: NSViewRepresentable {
     let onMoved: (CGPoint?) -> Void
+    let onRightMouseUp: ((NSEvent.ModifierFlags) -> Void)?
+
+    init(
+        onMoved: @escaping (CGPoint?) -> Void,
+        onRightMouseUp: ((NSEvent.ModifierFlags) -> Void)? = nil
+    ) {
+        self.onMoved = onMoved
+        self.onRightMouseUp = onRightMouseUp
+    }
 
     func makeNSView(context: Context) -> TrackingView {
         let view = TrackingView()
         view.onMoved = self.onMoved
+        view.onRightMouseUp = self.onRightMouseUp
         return view
     }
 
     func updateNSView(_ nsView: TrackingView, context: Context) {
         nsView.onMoved = self.onMoved
+        nsView.onRightMouseUp = self.onRightMouseUp
     }
 
     final class TrackingView: NSView {
         var onMoved: ((CGPoint?) -> Void)?
+        var onRightMouseUp: ((NSEvent.ModifierFlags) -> Void)?
         private var trackingArea: NSTrackingArea?
 
         override var isFlipped: Bool {
@@ -58,6 +70,10 @@ struct MouseLocationReader: NSViewRepresentable {
         override func mouseExited(with event: NSEvent) {
             super.mouseExited(with: event)
             self.onMoved?(nil)
+        }
+
+        override func rightMouseUp(with event: NSEvent) {
+            self.onRightMouseUp?(event.modifierFlags)
         }
     }
 }

@@ -16,10 +16,6 @@ enum StatusBarImage {
         Self.renderGraph(history: history, active: active, scale: 1, isTemplate: true)
     }
 
-    static func renderGraphForExport(history: [Int], active: Int, scale: CGFloat = 6) -> NSImage {
-        Self.renderGraph(history: history, active: active, scale: max(1, scale), isTemplate: false)
-    }
-
     private static func renderGraph(
         history: [Int],
         active: Int,

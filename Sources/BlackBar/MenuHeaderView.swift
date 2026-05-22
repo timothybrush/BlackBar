@@ -23,13 +23,23 @@ struct MenuHeaderView: View {
 
             UsageTrendChart(samples: self.chartSamples, rangeLabel: self.chartRangeLabel)
                 .frame(height: 74)
+                .overlay {
+                    RightClickExportOverlay { saveToDownloads in
+                        self.exportUsageGraph(saveToDownloads: saveToDownloads)
+                    }
+                }
 
             PlatformLegendView(platformUsage: self.snapshot.usage.platformUsage)
 
             if !self.snapshot.usage.workflowDistribution.isEmpty {
                 Divider()
                     .overlay(Color.secondary.opacity(0.18))
-                WorkflowRunDistributionChart(buckets: self.snapshot.usage.workflowDistribution)
+                WorkflowRunDistributionChart(
+                    buckets: self.snapshot.usage.workflowDistribution,
+                    onRightClick: { saveToDownloads in
+                        self.exportWorkflowGraph(saveToDownloads: saveToDownloads)
+                    }
+                )
             }
 
             if self.snapshot.status.hasActiveNotice {
@@ -62,6 +72,66 @@ struct MenuHeaderView: View {
     private static func vcpuText(_ value: Int) -> String {
         String(value)
     }
+
+    @MainActor
+    private func exportUsageGraph(saveToDownloads: Bool) {
+        self.exportGraph(
+            title: "BlackBar vCPU Usage",
+            subtitle: self.chartRangeLabel,
+            filenamePrefix: "BlackBar-vCPU",
+            saveToDownloads: saveToDownloads
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                UsageTrendChart(samples: self.chartSamples, rangeLabel: self.chartRangeLabel)
+                    .frame(height: 220)
+                HStack(alignment: .top) {
+                    PlatformLegendView(platformUsage: self.snapshot.usage.platformUsage)
+                    Spacer()
+                    UsageSummaryView(samples: self.chartSamples, rangeLabel: self.chartRangeLabel)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func exportWorkflowGraph(saveToDownloads: Bool) {
+        self.exportGraph(
+            title: "BlackBar Workflow Runs",
+            subtitle: "24h runs",
+            filenamePrefix: "BlackBar-workflow-runs",
+            saveToDownloads: saveToDownloads
+        ) {
+            WorkflowRunDistributionChart(
+                buckets: self.snapshot.usage.workflowDistribution,
+                chartHeight: 220
+            )
+        }
+    }
+
+    @MainActor
+    private func exportGraph<Content: View>(
+        title: String,
+        subtitle: String,
+        filenamePrefix: String,
+        saveToDownloads: Bool,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        do {
+            let image = try GraphExport.image(
+                from: GraphExportCard(title: title, subtitle: subtitle) {
+                    content()
+                },
+                size: CGSize(width: 720, height: 480)
+            )
+            if saveToDownloads {
+                _ = try GraphExport.saveToDownloads(image, filenamePrefix: filenamePrefix)
+            } else {
+                try GraphExport.writeToPasteboard(image)
+            }
+        } catch {
+            NSLog("BlackBar graph export failed: \(error.localizedDescription)")
+        }
+    }
 }
 
 private struct StatusNoticeRow: View {
@@ -78,6 +148,51 @@ private struct StatusNoticeRow: View {
                 .lineLimit(1)
             Spacer()
         }
+    }
+}
+
+private struct GraphExportCard<Content: View>: View {
+    let title: String
+    let subtitle: String
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(self.title)
+                        .font(.system(size: 24, weight: .semibold))
+                    Text(self.subtitle)
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(Date.now.formatted(.dateTime.month(.abbreviated).day().hour().minute()))
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.secondary)
+            }
+
+            self.content()
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+}
+
+private struct RightClickExportOverlay: View {
+    let export: (Bool) -> Void
+
+    var body: some View {
+        MouseLocationReader(
+            onMoved: { _ in },
+            onRightMouseUp: { modifiers in
+                self.export(modifiers.contains(.shift))
+            }
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
     }
 }
 
@@ -164,6 +279,8 @@ private struct WorkflowRunDistributionChart: View {
     }
 
     var buckets: [WorkflowRunDistributionBucket]
+    var chartHeight: CGFloat = 68
+    var onRightClick: ((Bool) -> Void)?
     @State private var selectedBucketID: Date?
 
     var body: some View {
@@ -220,7 +337,7 @@ private struct WorkflowRunDistributionChart: View {
                 }
             }
             .chartLegend(.hidden)
-            .frame(height: 68)
+            .frame(height: self.chartHeight)
             .accessibilityLabel("Workflow run distribution")
             .chartOverlay { proxy in
                 GeometryReader { geo in
@@ -232,9 +349,14 @@ private struct WorkflowRunDistributionChart: View {
                                 .position(x: rect.midX, y: rect.midY)
                                 .allowsHitTesting(false)
                         }
-                        MouseLocationReader { location in
-                            self.updateSelection(location: location, model: model, proxy: proxy, geo: geo)
-                        }
+                        MouseLocationReader(
+                            onMoved: { location in
+                                self.updateSelection(location: location, model: model, proxy: proxy, geo: geo)
+                            },
+                            onRightMouseUp: { modifiers in
+                                self.onRightClick?(modifiers.contains(.shift))
+                            }
+                        )
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .contentShape(Rectangle())
                     }
