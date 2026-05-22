@@ -11,6 +11,7 @@ APP_IDENTITY="${BLACKBAR_CODE_SIGN_IDENTITY:-Developer ID Application: Peter Ste
 ZIP_NAME="$APP_NAME-$MARKETING_VERSION.zip"
 DSYM_ZIP="$APP_NAME-$MARKETING_VERSION.dSYM.zip"
 API_KEY_PATH="/tmp/blackbar-api-key.p8"
+PKCS8_API_KEY_PATH="$API_KEY_PATH.pkcs8"
 NOTARY_ZIP="/tmp/BlackBarNotarize.zip"
 
 if [[ -z "${APP_STORE_CONNECT_API_KEY_P8:-}" || -z "${APP_STORE_CONNECT_KEY_ID:-}" || -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ]]; then
@@ -19,7 +20,11 @@ if [[ -z "${APP_STORE_CONNECT_API_KEY_P8:-}" || -z "${APP_STORE_CONNECT_KEY_ID:-
 fi
 
 echo "$APP_STORE_CONNECT_API_KEY_P8" | sed 's/\\n/\n/g' > "$API_KEY_PATH"
-trap 'rm -f "$API_KEY_PATH" "$NOTARY_ZIP"' EXIT
+if grep -q "BEGIN EC PRIVATE KEY" "$API_KEY_PATH"; then
+  openssl pkcs8 -topk8 -nocrypt -in "$API_KEY_PATH" -out "$PKCS8_API_KEY_PATH"
+  mv "$PKCS8_API_KEY_PATH" "$API_KEY_PATH"
+fi
+trap 'rm -f "$API_KEY_PATH" "$PKCS8_API_KEY_PATH" "$NOTARY_ZIP"' EXIT
 
 swift build -c release --arch arm64 --arch x86_64
 SKIP_BUILD=1 CODESIGN_IDENTITY="$APP_IDENTITY" "$ROOT/Scripts/package_app.sh" release
