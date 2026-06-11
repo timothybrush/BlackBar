@@ -1,4 +1,4 @@
-.PHONY: build app run ci release clean
+.PHONY: build app run test ci release clean
 
 APP_NAME := BlackBar
 
@@ -17,7 +17,11 @@ app: build
 run: app
 	open "build/$(APP_NAME).app"
 
-ci:
+test:
+	swift test
+	./Tests/Scripts/sign-and-notarize-test.sh
+
+ci: test
 	swift package resolve
 	swift build -c release
 	$(MAKE) app

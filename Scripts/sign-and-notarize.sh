@@ -10,9 +10,11 @@ APP_NAME="BlackBar"
 APP_IDENTITY="${BLACKBAR_CODE_SIGN_IDENTITY:-Developer ID Application: Peter Steinberger (Y5PE65HELJ)}"
 ZIP_NAME="$APP_NAME-$MARKETING_VERSION.zip"
 DSYM_ZIP="$APP_NAME-$MARKETING_VERSION.dSYM.zip"
-API_KEY_PATH="/tmp/blackbar-api-key.p8"
+TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/blackbar-notary.XXXXXX")
+API_KEY_PATH="$TEMP_DIR/api-key.p8"
 PKCS8_API_KEY_PATH="$API_KEY_PATH.pkcs8"
-NOTARY_ZIP="/tmp/BlackBarNotarize.zip"
+NOTARY_ZIP="$TEMP_DIR/BlackBarNotarize.zip"
+trap 'rm -rf "$TEMP_DIR"' EXIT
 
 if [[ -z "${APP_STORE_CONNECT_API_KEY_P8:-}" || -z "${APP_STORE_CONNECT_KEY_ID:-}" || -z "${APP_STORE_CONNECT_ISSUER_ID:-}" ]]; then
   echo "Missing APP_STORE_CONNECT_* env vars (API key, key id, issuer id)." >&2
@@ -20,7 +22,6 @@ if [[ -z "${APP_STORE_CONNECT_API_KEY_P8:-}" || -z "${APP_STORE_CONNECT_KEY_ID:-
 fi
 
 printf '%s\n' "$APP_STORE_CONNECT_API_KEY_P8" | sed 's/\\n/\n/g; 1s/^"//; $s/"$//' > "$API_KEY_PATH"
-trap 'rm -f "$API_KEY_PATH" "$PKCS8_API_KEY_PATH" "$NOTARY_ZIP"' EXIT
 if grep -q "BEGIN EC PRIVATE KEY" "$API_KEY_PATH"; then
   openssl pkcs8 -topk8 -nocrypt -in "$API_KEY_PATH" -out "$PKCS8_API_KEY_PATH"
   mv "$PKCS8_API_KEY_PATH" "$API_KEY_PATH"
