@@ -42,9 +42,6 @@ struct MenuHeaderView: View {
                 )
             }
 
-            if self.snapshot.status.hasActiveNotice {
-                StatusNoticeRow(status: self.snapshot.status)
-            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -130,25 +127,6 @@ struct MenuHeaderView: View {
             }
         } catch {
             NSLog("BlackBar graph export failed: \(error.localizedDescription)")
-        }
-    }
-}
-
-private struct StatusNoticeRow: View {
-    var status: BlacksmithStatus
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 7) {
-            Circle()
-                .fill(StatusPalette.color(for: self.status))
-                .frame(width: 7, height: 7)
-                .padding(.top, 3)
-            Text("\(self.status.noticeKind): \(self.status.noticeTitle ?? self.status.label)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(4)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
