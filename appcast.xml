@@ -3,6 +3,23 @@
     <channel>
         <title>BlackBar</title>
         <item>
+            <title>0.3.0</title>
+            <pubDate>Mon, 06 Jul 2026 07:35:20 -0700</pubDate>
+            <link>https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml</link>
+            <sparkle:version>11</sparkle:version>
+            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>BlackBar 0.3.0</h2>
+<ul>
+<li>Menu facelift: the vCPU history renders as layered gradient areas instead of dense bars, legends become chip pills that only list statuses present in the window, and the raw Active/Queued/API/Updated text rows are replaced by a stats card with per-status history chips. The full API debug summary moves into the card&#x27;s tooltip.</li>
+<li>Avoid rebuilding the SwiftUI status menu after background polling while the menu is closed, reducing idle CPU use.</li>
+<li>Reuse ISO 8601 parsing styles while processing job history instead of rebuilding formatters for every timestamp.</li>
+</ul>
+<p><a href="https://github.com/steipete/BlackBar/blob/main/CHANGELOG.md">View full changelog</a></p>
+]]></description>
+            <enclosure url="https://github.com/steipete/BlackBar/releases/download/v0.3.0/BlackBar-0.3.0.zip" length="2164318" type="application/octet-stream" sparkle:edSignature="Oy8JQBNroVLp+AAJQzZsSPwdTDU9YzNMkK0PJRG2dsYEriP7yB6isp2vYGGXQEbo9uEdY9/y2ZxQMJzUEwm+BQ=="/>
+        </item>
+        <item>
             <title>0.2.5</title>
             <pubDate>Thu, 02 Jul 2026 12:05:16 +0100</pubDate>
             <link>https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml</link>
@@ -32,21 +49,6 @@
 <p><a href="https://github.com/steipete/BlackBar/blob/main/CHANGELOG.md">View full changelog</a></p>
 ]]></description>
             <enclosure url="https://github.com/steipete/BlackBar/releases/download/v0.2.4/BlackBar-0.2.4.zip" length="2099564" type="application/octet-stream" sparkle:edSignature="T/ZVa06cFw/r5/xgSJZcHKzf4QU7ys79fEJa8dQi+fzg0rdxSGXlmk1d+lhdiTPu7B44zQ01VINFKbQfiIKVBA=="/>
-        </item>
-        <item>
-            <title>0.2.3</title>
-            <pubDate>Thu, 11 Jun 2026 08:03:13 +0100</pubDate>
-            <link>https://raw.githubusercontent.com/steipete/BlackBar/main/appcast.xml</link>
-            <sparkle:version>8</sparkle:version>
-            <sparkle:shortVersionString>0.2.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<h2>BlackBar 0.2.3</h2>
-<ul>
-<li>Remove temporary App Store Connect key material when notarization key conversion fails.</li>
-</ul>
-<p><a href="https://github.com/steipete/BlackBar/blob/main/CHANGELOG.md">View full changelog</a></p>
-]]></description>
-            <enclosure url="https://github.com/steipete/BlackBar/releases/download/v0.2.3/BlackBar-0.2.3.zip" length="2097078" type="application/octet-stream" sparkle:edSignature="5v3/YDu/gSaYNmJrFtHJTBgMO/ot2he0Z19RZmkP8t1aMaP1kykt7MARFIk9ZQ/JLawlWz9l8h8KEbSgqDaOCA=="/>
         </item>
     </channel>
 </rss>
