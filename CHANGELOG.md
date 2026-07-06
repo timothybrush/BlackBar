@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.3.1 - Unreleased
+
 ## 0.3.0 - 2026-07-06
 
 - Menu facelift: the vCPU history renders as layered gradient areas instead of dense bars, legends become chip pills that only list statuses present in the window, and the raw Active/Queued/API/Updated text rows are replaced by a stats card with per-status history chips. The full API debug summary moves into the card's tooltip.
